@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -152,7 +153,10 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
             File apkFile = new File(saveFilePath);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setDataAndType(Uri.fromFile(apkFile),"application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri uri = FileProvider.getUriForFile(mContext.get(),"com.zfy.networkplayer.provider",apkFile);
+            intent.setDataAndType(uri,"application/vnd.android.package-archive");
+            mContext.get().startActivity(intent);
         }
     }
 }

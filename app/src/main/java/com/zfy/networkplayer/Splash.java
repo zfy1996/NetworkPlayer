@@ -56,7 +56,7 @@ public class Splash extends AppCompatActivity {
         int currentVersionCode = packageInfo.versionCode;
         versionText.setText(packageInfo.versionName);
         CheckVersionUpdate checkVersionUpdate = new CheckVersionUpdate(this,this,currentVersionCode);
-        String checkNewVersionUrl = "https://github.com/zfy1996/ceshi/raw/master/update.json";
+        String checkNewVersionUrl = "https://github.com/zfy1996/NetworkPlayer/raw/master/update.json";
         checkVersionUpdate.execute(checkNewVersionUrl);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);

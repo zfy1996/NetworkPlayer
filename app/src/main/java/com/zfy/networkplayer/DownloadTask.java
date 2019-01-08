@@ -30,7 +30,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     private long desFileSize = 0;
     private String saveFilePath;
 
-    public DownloadTask(DownloadListener listener,String saveFilePath) {
+    DownloadTask(DownloadListener listener,String saveFilePath) {
         this.listener = listener;
         this.saveFilePath = saveFilePath;
     }
@@ -142,19 +142,19 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
         return false;
     }
 
-    public void setCanceled() {
+    void setCanceled() {
         isCancel = true;
     }
 
-    public void setPaused() {
+    void setPaused() {
         isPause = true;
     }
 
-    public long getCurrentFileSize() {
+    long getCurrentFileSize() {
         return currentFileSize;
     }
 
-    public long getDesFileSize() {
+    long getDesFileSize() {
         return desFileSize;
     }
 }
