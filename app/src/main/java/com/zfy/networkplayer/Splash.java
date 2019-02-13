@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -48,18 +50,28 @@ public class Splash extends AppCompatActivity {
     }
 
     private void initSystem() throws PackageManager.NameNotFoundException {
-        TextView proggressText = findViewById(R.id.progressText);
+        TextView progressText = findViewById(R.id.progressText);
         ProgressBar progressBar = findViewById(R.id.progressBar);
-        proggressText.setVisibility(View.GONE);
+        progressText.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);
         TextView versionText = findViewById(R.id.versionText);
         PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
         int currentVersionCode = packageInfo.versionCode;
         versionText.setText(packageInfo.versionName);
-        CheckVersionUpdate checkVersionUpdate = new CheckVersionUpdate(this,this,currentVersionCode);
-        String checkNewVersionUrl = "https://github.com/zfy1996/NetworkPlayer/raw/master/update.json";
-        checkVersionUpdate.execute(checkNewVersionUrl);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        if(false&&(networkInfo!= null)&&networkInfo.isConnected()) {
+            Log.d("zhangfy","network connect");
+            CheckVersionUpdate checkVersionUpdate = new CheckVersionUpdate(this, this, currentVersionCode);
+            String checkNewVersionUrl = "https://github.com/zfy1996/NetworkPlayer/raw/master/update.json";
+            checkVersionUpdate.execute(checkNewVersionUrl);
+        }else {
+            Log.d("zhangfy","network disconnect");
+            Intent intent = new Intent(this,MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
 }

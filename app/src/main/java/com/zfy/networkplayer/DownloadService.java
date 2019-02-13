@@ -34,6 +34,7 @@ public class DownloadService extends Service {
     private static final int DOWNLOAD_FAILED = 3;
     private static final int URL_INVALID = 4;
     private static final int DELETE_FAILED = 5;
+    private static final int INSTALL_APK = 6;
 
     private DownloadListener listener = new DownloadListener() {
         Message message = new Message();
@@ -58,12 +59,15 @@ public class DownloadService extends Service {
 
         @Override
         public void success() {
-            downloadTask = null;
             if (mLocalEnableNotification)
                 manager.cancel(1);
             //Toast.makeText(DownloadService.this, "Download Success", Toast.LENGTH_SHORT).show();
-            message.what = DOWNLOAD_SUCCESS;
+            if(downloadTask.getIsApkFile())
+                message.what = INSTALL_APK;
+            else
+                message.what = DOWNLOAD_SUCCESS;
             mHandler.sendMessage(message);
+            downloadTask = null;
         }
 
         @Override
@@ -110,6 +114,7 @@ public class DownloadService extends Service {
 
     class downloadBind extends Binder {
         String saveFilePath;
+
         void setActivityProgressBar(Boolean localEnableNotification,
                                            ProgressBar progressBar, TextView progressText){
             mLocalEnableNotification = localEnableNotification;
@@ -121,11 +126,15 @@ public class DownloadService extends Service {
             mHandler = handler;
         }
 
-        void  startDownload(String url,String saveFilePath) {
+        void setIsApkFile(boolean mIsApkFile){
+            downloadTask.setIsApkFile(mIsApkFile);
+        }
+
+        void  startDownload(String url,String saveFilePath,String fileName) {
             if (downloadTask == null) {
                 this.saveFilePath = saveFilePath;
                 downloadUrl = url;
-                downloadTask = new DownloadTask(listener,saveFilePath);
+                downloadTask = new DownloadTask(listener,saveFilePath,fileName);
                 downloadTask.execute(downloadUrl);    //转到doInBackground中执行下载动作
                 if (mLocalEnableNotification) {
                     manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);

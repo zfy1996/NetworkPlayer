@@ -29,10 +29,13 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     private long currentFileSize = 0;
     private long desFileSize = 0;
     private String saveFilePath;
+    private String fileName;
+    private boolean mIsApkFile = false;
 
-    DownloadTask(DownloadListener listener,String saveFilePath) {
+    DownloadTask(DownloadListener listener,String saveFilePath,String fileName) {
         this.listener = listener;
         this.saveFilePath = saveFilePath;
+        this.fileName = fileName;
     }
 
     @Override
@@ -41,7 +44,8 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
             String downloadUrl = strings[0];
             if (!isValidUrl(downloadUrl))
                 return TYPE_INVALID;
-            String fileName = downloadUrl.substring(downloadUrl.lastIndexOf("/") + 1);
+            if(fileName == null)
+                fileName = downloadUrl.substring(downloadUrl.lastIndexOf("/") + 1);
             File file = new File(saveFilePath + "/" + fileName);
             if (file.exists())
                 currentFileSize = file.length();
@@ -93,6 +97,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
         long fileLen = 0;
         if (response.isSuccessful() && response.body() != null) {
             fileLen = response.body().contentLength();
+            Log.d("zhangfy","len"+fileLen);
             response.close();
         }
         return fileLen;
@@ -140,6 +145,14 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
             }
         }
         return false;
+    }
+
+    void setIsApkFile(boolean mIsApkFile){
+        this.mIsApkFile = mIsApkFile;
+    }
+
+    boolean getIsApkFile(){
+        return mIsApkFile;
     }
 
     void setCanceled() {

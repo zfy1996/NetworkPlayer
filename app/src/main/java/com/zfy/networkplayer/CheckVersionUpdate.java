@@ -40,15 +40,24 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
     private int currentVersionCode;
     private Handler mHandler;
 
+    private void checkChannelFileExisted(){
+        String path = mContext.get().getFilesDir().getPath();
+        File file = new File(path + "/movie.htm");
+        if(!file.exists()) {
+            downloadBind.startDownload("https://v.qq.com/x/list/movie", path, "movie.htm");
+        }
+    }
     private DownloadService.downloadBind downloadBind;
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             downloadBind = (DownloadService.downloadBind) service;
             downloadBind.setActivityProgressBar(false,
-                    (ProgressBar)mActivity.get().findViewById(R.id.progressBar),
-                    (TextView)mActivity.get().findViewById(R.id.progressText));
+                    (ProgressBar) mActivity.get().findViewById(R.id.progressBar),
+                    (TextView) mActivity.get().findViewById(R.id.progressText));
             downloadBind.setHandler(mHandler);
+            checkChannelFileExisted();
         }
 
         @Override
@@ -58,7 +67,8 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
 
     private WeakReference<Context> mContext;
     private WeakReference<Activity> mActivity;
-    CheckVersionUpdate(Context context,Activity activity, int currentVersionCode) {
+
+    CheckVersionUpdate(Context context, Activity activity, int currentVersionCode) {
         mContext = new WeakReference<>(context);
         this.currentVersionCode = currentVersionCode;
         mActivity = new WeakReference<>(activity);
@@ -70,7 +80,7 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
         Intent intent = new Intent(mContext.get(), DownloadService.class);
         mContext.get().startService(intent);
         mContext.get().bindService(intent, connection, Context.BIND_AUTO_CREATE);
-        mHandler = new myHandler(mContext.get(),mActivity.get());
+        mHandler = new myHandler(mContext.get(), mActivity.get());
     }
 
     @Override
@@ -111,51 +121,64 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String filePath = mContext.get().getApplicationContext().getCacheDir().getPath();
-                                downloadBind.startDownload(newVersionDownloadUrl, filePath);
+                                downloadBind.startDownload(newVersionDownloadUrl, filePath, null);
+                                downloadBind.setIsApkFile(true);
                                 String fileName = newVersionDownloadUrl.substring(newVersionDownloadUrl.lastIndexOf("/") + 1);
-                                ((myHandler)mHandler).setSaveFilePath(filePath + "/" + fileName);
+                                ((myHandler) mHandler).setSaveFilePath(filePath + "/" + fileName);
                                 mActivity.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                                 mActivity.get().findViewById(R.id.progressText).setVisibility(View.VISIBLE);
                             }
                         })
-                        .setNegativeButton("cancel", null)
+                        .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                onPostExecute(TYPE_ENTERHOME);
+                            }
+                        })
                         .show();
                 break;
             case TYPE_ENTERHOME:
+                Intent intent = new Intent(mContext.get(), MainActivity.class);
+                mContext.get().startActivity(intent);
+                mActivity.get().finish();
                 break;
         }
     }
-    static class myHandler extends Handler{
-        private static final int DOWNLOAD_SUCCESS = 0;
+
+    static class myHandler extends Handler {
+        private static final int INSTALL_APK = 6;
         private String saveFilePath;
         private WeakReference<Context> mContext;
         private WeakReference<Activity> mActivity;
-        myHandler(Context context,Activity activity){
+
+        myHandler(Context context, Activity activity) {
             mContext = new WeakReference<>(context);
             mActivity = new WeakReference<>(activity);
         }
 
-        void setSaveFilePath(String saveFilePath){
+        void setSaveFilePath(String saveFilePath) {
             this.saveFilePath = saveFilePath;
         }
 
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
-                case DOWNLOAD_SUCCESS:
+            switch (msg.what) {
+                case INSTALL_APK:
                     installApk();
-                    //Toast.makeText(mContext.get(), "Download Success", Toast.LENGTH_SHORT).show();
+                    break;
+                case 0:
+                    Log.d("zhangfy","download success");
                     break;
             }
         }
 
-        private void installApk(){
+        private void installApk() {
             File apkFile = new File(saveFilePath);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            Uri uri = FileProvider.getUriForFile(mContext.get(),"com.zfy.networkplayer.provider",apkFile);
-            intent.setDataAndType(uri,"application/vnd.android.package-archive");
+            Uri uri = FileProvider.getUriForFile(mContext.get(), "com.zfy.networkplayer.provider", apkFile);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
             mContext.get().startActivity(intent);
         }
     }
