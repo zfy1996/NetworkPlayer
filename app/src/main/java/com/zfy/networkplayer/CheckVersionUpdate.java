@@ -40,13 +40,6 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
     private int currentVersionCode;
     private Handler mHandler;
 
-    private void checkChannelFileExisted(){
-        String path = mContext.get().getFilesDir().getPath();
-        File file = new File(path + "/movie.htm");
-        if(!file.exists()) {
-            downloadBind.startDownload("https://v.qq.com/x/list/movie", path, "movie.htm");
-        }
-    }
     private DownloadService.downloadBind downloadBind;
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -57,7 +50,6 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
                     (ProgressBar) mActivity.get().findViewById(R.id.progressBar),
                     (TextView) mActivity.get().findViewById(R.id.progressText));
             downloadBind.setHandler(mHandler);
-            checkChannelFileExisted();
         }
 
         @Override
@@ -165,9 +157,6 @@ public class CheckVersionUpdate extends AsyncTask<String, Void, Integer> {
             switch (msg.what) {
                 case INSTALL_APK:
                     installApk();
-                    break;
-                case 0:
-                    Log.d("zhangfy","download success");
                     break;
             }
         }
